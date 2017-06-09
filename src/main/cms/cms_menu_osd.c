@@ -142,10 +142,53 @@ CMS_Menu menuOsdActiveElems = {
     .entries = menuOsdActiveElemsEntries
 };
 
+static uint16_t osdConfig_enabled_stats[OSD_STAT_COUNT];
+
+static long menuOsdEnabledStatsOnEnter(void)
+{
+    memcpy(&osdConfig_enabled_stats[0], &osdConfig()->enabled_stats[0], sizeof(uint16_t) * OSD_STAT_COUNT);
+    return 0;
+}
+
+static long menuOsdEnabledStatsOnExit(const OSD_Entry *self)
+{
+    UNUSED(self);
+
+    memcpy(&osdConfigMutable()->enabled_stats[0], &osdConfig_enabled_stats[0], sizeof(uint16_t) * OSD_STAT_COUNT);
+    return 0;
+}
+
+OSD_Entry menuOsdEnabledStatsEntries[] =
+{
+    {"--- ENABLED STATS ---", OME_Label, NULL, NULL, 0},
+    {"MAX SPEED", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_MAX_SPEED], 0},
+    {"MIN BATTERY", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_MIN_BATTERY], 0},
+    {"MIN RSSI", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_MIN_RSSI], 0},
+    {"MAX CURRENT", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_MAX_CURRENT], 0},
+    {"USED MAH", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_USED_MAH], 0},
+    {"MAX ALTITUDE", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_MAX_ALTITUDE], 0},
+    {"BLACKBOX", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_BLACKBOX], 0},
+    {"END BATTERY", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_END_BATTERY], 0},
+    {"FLYTIME", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_FLYTIME], 0},
+    {"ARMED TIME", OME_Bool, NULL, &osdConfig_enabled_stats[OSD_STAT_ARMEDTIME], 0},
+    {"BACK", OME_Back, NULL, NULL, 0},
+    {NULL, OME_END, NULL, NULL, 0}
+};
+
+CMS_Menu menuOsdEnabledStats = {
+    .GUARD_text = "MENUOSDSTAT",
+    .GUARD_type = OME_MENU,
+    .onEnter = menuOsdEnabledStatsOnEnter,
+    .onExit = menuOsdEnabledStatsOnExit,
+    .onGlobalExit = NULL,
+    .entries = menuOsdEnabledStatsEntries
+};
+
 OSD_Entry cmsx_menuOsdLayoutEntries[] =
 {
     {"---SCREEN LAYOUT---", OME_Label, NULL, NULL, 0},
     {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems, 0},
+    {"ENABLED STATS", OME_Submenu, cmsMenuChange, &menuOsdEnabledStats, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}
 };
