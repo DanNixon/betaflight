@@ -206,6 +206,48 @@ static int32_t osdGetMetersToSelectedUnit(int32_t meters)
     }
 }
 
+#ifdef BLACKBOX
+static void osdGetBlackboxStatusString(char * buff)
+{
+    bool storageDeviceIsWorking = false;
+    uint32_t storageUsed = 0;
+    uint32_t storageTotal = 0;
+
+    switch (blackboxConfig()->device) {
+#ifdef USE_SDCARD
+    case BLACKBOX_DEVICE_SDCARD:
+        storageDeviceIsWorking = sdcard_isInserted() && sdcard_isFunctional() && (afatfs_getFilesystemState() == AFATFS_FILESYSTEM_STATE_READY);
+        if (storageDeviceIsWorking) {
+            storageTotal = sdcard_getMetadata()->numBlocks / 2000;
+            storageUsed = storageTotal - (afatfs_getContiguousFreeSpace() / 1024000);
+        }
+        break;
+#endif
+
+#ifdef USE_FLASHFS
+    case BLACKBOX_DEVICE_FLASH:
+        storageDeviceIsWorking = flashfsIsReady();
+        if (storageDeviceIsWorking) {
+            const flashGeometry_t *geometry = flashfsGetGeometry();
+            storageTotal = geometry->totalSize / 1024;
+            storageUsed = flashfsGetOffset() / 1024;
+        }
+        break;
+#endif
+
+    default:
+        storageDeviceIsWorking = true;
+    }
+
+    if (storageDeviceIsWorking) {
+        const uint16_t storageUsedPercent = (storageUsed * 100) / storageTotal;
+        tfp_sprintf(buff, "%d%%", storageUsedPercent);
+    } else {
+        tfp_sprintf(buff, "FAULT");
+    }
+}
+#endif
+
 static void osdFormatPID(char * buff, const char * label, const pid8_t * pid)
 {
     tfp_sprintf(buff, "%s %3d %3d %3d", label, pid->P, pid->I, pid->D);
@@ -721,6 +763,49 @@ static void osdDrawSingleElement(uint8_t item)
         break;
 #endif
 
+    case OSD_ITEM_MAX_SPEED:
+        tfp_sprintf(buff, "%c%d", SYM_ARROW_NORTH, stats.max_speed);
+        break;
+
+    case OSD_ITEM_MAX_DISTANCE:
+        tfp_sprintf(buff, "%c%d%c", SYM_ARROW_NORTH, osdGetMetersToSelectedUnit(stats.max_distance), osdGetMetersToSelectedUnitSymbol());
+        break;
+
+    case OSD_ITEM_MIN_BATTERY:
+        tfp_sprintf(buff, "%c%d.%1d%c", SYM_ARROW_SOUTH, stats.min_voltage / 10, stats.min_voltage % 10, SYM_VOLT);
+        break;
+
+    case OSD_ITEM_MIN_RSSI:
+        tfp_sprintf(buff, "%c%d%", SYM_ARROW_SOUTH, stats.min_rssi);
+        break;
+
+    case OSD_ITEM_MAX_CURRENT:
+        if (batteryConfig()->currentMeterSource != CURRENT_METER_NONE) {
+            tfp_sprintf(buff, "%c%d%c", SYM_ARROW_NORTH, stats.max_current, SYM_AMP);
+        }
+        break;
+
+    case OSD_ITEM_MAX_ALTITUDE:
+        {
+            int32_t alt = osdGetMetersToSelectedUnit(stats.max_altitude);
+            tfp_sprintf(buff, "%c%c%d.%01d%c", SYM_ARROW_NORTH, alt < 0 ? '-' : ' ', abs(alt / 100), abs((alt % 100) / 10), osdGetMetersToSelectedUnitSymbol());
+            break;
+        }
+
+#ifdef BLACKBOX
+    case OSD_ITEM_BLACKBOX:
+        if (blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
+            osdGetBlackboxStatusString(buff);
+        }
+        break;
+
+    case OSD_ITEM_BLACKBOX_NUMBER:
+        if (blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
+            tfp_sprintf(buff, "BB %d", blackboxGetLogNumber());
+        }
+        break;
+#endif
+
     default:
         return;
     }
@@ -767,6 +852,15 @@ static void osdDrawElements(void)
     osdDrawSingleElement(OSD_NUMERICAL_HEADING);
     osdDrawSingleElement(OSD_NUMERICAL_VARIO);
     osdDrawSingleElement(OSD_COMPASS_BAR);
+    osdDrawSingleElement(OSD_ITEM_MAX_SPEED);
+    osdDrawSingleElement(OSD_ITEM_MIN_BATTERY);
+    osdDrawSingleElement(OSD_ITEM_MIN_RSSI);
+    osdDrawSingleElement(OSD_ITEM_MAX_CURRENT);
+    osdDrawSingleElement(OSD_ITEM_USED_MAH);
+    osdDrawSingleElement(OSD_ITEM_MAX_ALTITUDE);
+    osdDrawSingleElement(OSD_ITEM_BLACKBOX);
+    osdDrawSingleElement(OSD_ITEM_MAX_DISTANCE);
+    osdDrawSingleElement(OSD_ITEM_BLACKBOX_NUMBER);
 
 #ifdef GPS
     if (sensors(SENSOR_GPS)) {
@@ -841,19 +935,6 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     OSD_INIT(osdConfig, OSD_ARTIFICIAL_HORIZON ,  0, -4, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_1);
     // Horizon is centered
     OSD_INIT(osdConfig, OSD_HORIZON_SIDEBARS ,  0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_1);
-
-    osdConfig->enabled_stats[OSD_STAT_MAX_SPEED]       = true;
-    osdConfig->enabled_stats[OSD_STAT_MIN_BATTERY]     = true;
-    osdConfig->enabled_stats[OSD_STAT_MIN_RSSI]        = true;
-    osdConfig->enabled_stats[OSD_STAT_MAX_CURRENT]     = true;
-    osdConfig->enabled_stats[OSD_STAT_USED_MAH]        = true;
-    osdConfig->enabled_stats[OSD_STAT_MAX_ALTITUDE]    = false;
-    osdConfig->enabled_stats[OSD_STAT_BLACKBOX]        = true;
-    osdConfig->enabled_stats[OSD_STAT_END_BATTERY]     = false;
-    osdConfig->enabled_stats[OSD_STAT_MAX_DISTANCE]    = false;
-    osdConfig->enabled_stats[OSD_STAT_BLACKBOX_NUMBER] = true;
-    osdConfig->enabled_stats[OSD_STAT_TIMER_1]         = false;
-    osdConfig->enabled_stats[OSD_STAT_TIMER_2]         = true;
 
     osdConfig->units = OSD_UNIT_METRIC;
     osdConfig->page = 0;
@@ -1020,134 +1101,6 @@ static void osdUpdateStats(void)
 #endif
 }
 
-#ifdef BLACKBOX
-static void osdGetBlackboxStatusString(char * buff)
-{
-    bool storageDeviceIsWorking = false;
-    uint32_t storageUsed = 0;
-    uint32_t storageTotal = 0;
-
-    switch (blackboxConfig()->device) {
-#ifdef USE_SDCARD
-    case BLACKBOX_DEVICE_SDCARD:
-        storageDeviceIsWorking = sdcard_isInserted() && sdcard_isFunctional() && (afatfs_getFilesystemState() == AFATFS_FILESYSTEM_STATE_READY);
-        if (storageDeviceIsWorking) {
-            storageTotal = sdcard_getMetadata()->numBlocks / 2000;
-            storageUsed = storageTotal - (afatfs_getContiguousFreeSpace() / 1024000);
-        }
-        break;
-#endif
-
-#ifdef USE_FLASHFS
-    case BLACKBOX_DEVICE_FLASH:
-        storageDeviceIsWorking = flashfsIsReady();
-        if (storageDeviceIsWorking) {
-            const flashGeometry_t *geometry = flashfsGetGeometry();
-            storageTotal = geometry->totalSize / 1024;
-            storageUsed = flashfsGetOffset() / 1024;
-        }
-        break;
-#endif
-
-    default:
-        storageDeviceIsWorking = true;
-    }
-
-    if (storageDeviceIsWorking) {
-        const uint16_t storageUsedPercent = (storageUsed * 100) / storageTotal;
-        tfp_sprintf(buff, "%d%%", storageUsedPercent);
-    } else {
-        tfp_sprintf(buff, "FAULT");
-    }
-}
-#endif
-
-static void osdDisplayStatisticLabel(uint8_t y, const char * text, const char * value)
-{
-    displayWrite(osdDisplayPort, 2, y, text);
-    displayWrite(osdDisplayPort, 20, y, ":");
-    displayWrite(osdDisplayPort, 22, y, value);
-}
-
-static void osdShowStats(void)
-{
-    uint8_t top = 2;
-    char buff[10];
-
-    displayClearScreen(osdDisplayPort);
-    displayWrite(osdDisplayPort, 2, top++, "  --- STATS ---");
-
-    if (osdConfig()->enabled_stats[OSD_STAT_TIMER_1]) {
-        osdFormatTimer(buff, false, OSD_TIMER_1);
-        osdDisplayStatisticLabel(top++, osdTimerSourceNames[OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_1])], buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_TIMER_2]) {
-        osdFormatTimer(buff, false, OSD_TIMER_2);
-        osdDisplayStatisticLabel(top++, osdTimerSourceNames[OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_2])], buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_SPEED] && STATE(GPS_FIX)) {
-        itoa(stats.max_speed, buff, 10);
-        osdDisplayStatisticLabel(top++, "MAX SPEED", buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_DISTANCE]) {
-        tfp_sprintf(buff, "%d%c", osdGetMetersToSelectedUnit(stats.max_distance), osdGetMetersToSelectedUnitSymbol());
-        osdDisplayStatisticLabel(top++, "MAX DISTANCE", buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_MIN_BATTERY]) {
-        tfp_sprintf(buff, "%d.%1d%c", stats.min_voltage / 10, stats.min_voltage % 10, SYM_VOLT);
-        osdDisplayStatisticLabel(top++, "MIN BATTERY", buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_END_BATTERY]) {
-        tfp_sprintf(buff, "%d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
-        osdDisplayStatisticLabel(top++, "END BATTERY", buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_MIN_RSSI]) {
-        itoa(stats.min_rssi, buff, 10);
-        strcat(buff, "%");
-        osdDisplayStatisticLabel(top++, "MIN RSSI", buff);
-    }
-
-    if (batteryConfig()->currentMeterSource != CURRENT_METER_NONE) {
-        if (osdConfig()->enabled_stats[OSD_STAT_MAX_CURRENT]) {
-            itoa(stats.max_current, buff, 10);
-            strcat(buff, "A");
-            osdDisplayStatisticLabel(top++, "MAX CURRENT", buff);
-        }
-
-        if (osdConfig()->enabled_stats[OSD_STAT_USED_MAH]) {
-            tfp_sprintf(buff, "%d%c", getMAhDrawn(), SYM_MAH);
-            osdDisplayStatisticLabel(top++, "USED MAH", buff);
-        }
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_ALTITUDE]) {
-        int32_t alt = osdGetMetersToSelectedUnit(stats.max_altitude);
-        tfp_sprintf(buff, "%c%d.%01d%c", alt < 0 ? '-' : ' ', abs(alt / 100), abs((alt % 100) / 10), osdGetMetersToSelectedUnitSymbol());
-        osdDisplayStatisticLabel(top++, "MAX ALTITUDE", buff);
-    }
-
-#ifdef BLACKBOX
-    if (osdConfig()->enabled_stats[OSD_STAT_BLACKBOX] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
-        osdGetBlackboxStatusString(buff);
-        osdDisplayStatisticLabel(top++, "BLACKBOX", buff);
-    }
-
-    if (osdConfig()->enabled_stats[OSD_STAT_BLACKBOX_NUMBER] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
-        itoa(blackboxGetLogNumber(), buff, 10);
-        osdDisplayStatisticLabel(top++, "BB LOG NUM", buff);
-    }
-#endif
-
-    /* Reset time since last armed here to ensure this timer is at zero when back at "main" OSD screen */
-    stats.armed_time = 0;
-}
-
 static void osdShowArmed(void)
 {
     displayClearScreen(osdDisplayPort);
@@ -1165,7 +1118,9 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             osdShowArmed();
             resumeRefreshAt = currentTimeUs + (REFRESH_1S / 2);
         } else {
-            osdShowStats();
+            if (osdConfig()->statsPage) {
+                page = osdConfig()->statsPage;
+            }
             resumeRefreshAt = currentTimeUs + (60 * REFRESH_1S);
         }
 
@@ -1196,6 +1151,11 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             displayClearScreen(osdDisplayPort);
             resumeRefreshAt = 0;
         }
+    }
+
+    // Return to predefined page after stats screen was shown
+    if (page == osdConfig()->statsPage) {
+        page = osdConfig()->page;
     }
 
     // Update page based on channel position

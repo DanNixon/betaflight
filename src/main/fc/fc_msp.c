@@ -592,11 +592,8 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
             sbufWriteU8(dst, osdConfig()->item[i].flags);
         }
 
-        // Post flight statistics
-        sbufWriteU8(dst, OSD_STAT_COUNT);
-        for (int i = 0; i < OSD_STAT_COUNT; i++ ) {
-            sbufWriteU8(dst, osdConfig()->enabled_stats[i]);
-        }
+        // Post flight statistics (no longer used)
+        sbufWriteU8(dst, 0);
 
         // Timers
         sbufWriteU8(dst, OSD_TIMER_COUNT);
@@ -1962,12 +1959,9 @@ static mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 // now   : U8 [U8 U8 U8 or U16]
 
                 /* Get screen index, 0 is post flight statistics, 1 and above are in flight OSD screens */
-                const uint8_t screen = (uint8_t) sbufReadU8(src);
+                (uint8_t) sbufReadU8(src);
 
-                if (screen == 0 && addr < OSD_STAT_COUNT) {
-                    /* Set statistic item enable */
-                    osdConfigMutable()->enabled_stats[addr] = (uint16_t) sbufReadU16(src);
-                } else if (addr < OSD_ITEM_COUNT) {
+                if (addr < OSD_ITEM_COUNT) {
                     /* Set element positions */
                     // read x, y, and flags:
                     osdConfigMutable()->item[addr].x     = (int8_t) sbufReadU8(src);

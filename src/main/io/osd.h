@@ -83,24 +83,18 @@ typedef enum {
     OSD_COMPASS_BAR,
     OSD_ESC_TMP,
     OSD_ESC_RPM,
+    OSD_ITEM_MAX_SPEED,
+    OSD_ITEM_MIN_BATTERY,
+    OSD_ITEM_MIN_RSSI,
+    OSD_ITEM_MAX_CURRENT,
+    OSD_ITEM_USED_MAH,
+    OSD_ITEM_MAX_ALTITUDE,
+    OSD_ITEM_BLACKBOX,
+    OSD_ITEM_MAX_DISTANCE,
+    OSD_ITEM_BLACKBOX_NUMBER,
+
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
-
-typedef enum {
-    OSD_STAT_MAX_SPEED,
-    OSD_STAT_MIN_BATTERY,
-    OSD_STAT_MIN_RSSI,
-    OSD_STAT_MAX_CURRENT,
-    OSD_STAT_USED_MAH,
-    OSD_STAT_MAX_ALTITUDE,
-    OSD_STAT_BLACKBOX,
-    OSD_STAT_END_BATTERY,
-    OSD_STAT_TIMER_1,
-    OSD_STAT_TIMER_2,
-    OSD_STAT_MAX_DISTANCE,
-    OSD_STAT_BLACKBOX_NUMBER,
-    OSD_STAT_COUNT // MUST BE LAST
-} osd_stats_e;
 
 typedef enum {
     OSD_UNIT_IMPERIAL,
@@ -163,8 +157,7 @@ typedef struct osdConfig_s {
     osdItem_t item[OSD_ITEM_COUNT];
     uint8_t page;
     uint8_t pageAuxChannel;
-
-    bool enabled_stats[OSD_STAT_COUNT];
+    uint8_t statsPage;
 
     // Alarms
     uint16_t cap_alarm;
