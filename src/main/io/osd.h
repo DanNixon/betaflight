@@ -157,7 +157,7 @@ typedef struct osdConfig_s {
     osdItem_t item[OSD_ITEM_COUNT];
     uint8_t page;
     uint8_t pageAuxChannel;
-    uint8_t statsPage;
+    int8_t statsPage;
 
     // Alarms
     uint16_t cap_alarm;

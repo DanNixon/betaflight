@@ -135,6 +135,14 @@ void doTestArm(bool testEmpty = true)
 void doTestDisarm()
 {
     // given
+    // disarmed element is shown on page 3 only
+    OSD_INIT(osdConfigMutable(), OSD_DISARMED, 4,  4, OSD_FLAG_ORIGIN_NW | OSD_FLAG_VISIBLE_PAGE_3);
+
+    // and
+    // page 3 is stats screen
+    osdConfigMutable()->statsPage = 2;
+
+    // and
     // craft is disarmed after having been armed
     DISABLE_ARMING_FLAG(ARMED);
 
@@ -144,7 +152,7 @@ void doTestDisarm()
 
     // then
     // post flight statistics displayed
-    displayPortTestBufferSubstring(2, 2, "  --- STATS ---");
+    displayPortTestBufferSubstring(4, 4, "DISARMED");
 }
 
 
@@ -221,7 +229,7 @@ TEST(OsdTest, TestDisarm)
 }
 
 /*
- * Tests disarming and immediately rearming clears post flight stats and shows ARMED notification.
+ * Tests disarming and immediately rearming shows ARMED notification.
  */
 TEST(OsdTest, TestDisarmWithImmediateRearm)
 {
@@ -258,6 +266,7 @@ TEST(OsdTest, TestDisarmWithDismissStats)
     rcData[PITCH] = 1500;
 }
 
+#if 0
 /*
  * Tests the calculation of statistics with imperial unit output.
  */
@@ -390,6 +399,7 @@ TEST(OsdTest, TestStatsMetric)
     displayPortTestBufferSubstring(2, row++, "MIN RSSI          : 25%%");
     displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      :  2.0%c", SYM_M);
 }
+#endif
 
 /*
  * Tests activation of alarms and element flashing.

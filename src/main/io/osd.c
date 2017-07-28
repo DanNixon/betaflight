@@ -929,6 +929,17 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     OSD_INIT(osdConfig, OSD_HOME_DIR         ,   0,  2, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_1);
     OSD_INIT(osdConfig, OSD_COMPASS_BAR      ,  -4,  1, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_1);
 
+    // TODO: positions
+    OSD_INIT(osdConfig, OSD_ITEM_MAX_SPEED      ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_MIN_BATTERY    ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_MIN_RSSI       ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_MAX_CURRENT    ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_USED_MAH       ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_MAX_ALTITUDE   ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_BLACKBOX       ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_BLACKBOX_NUMBER,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+    OSD_INIT(osdConfig, OSD_ITEM_MAX_DISTANCE   ,   0,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_3);
+
     // Crosshair uses 3 chars, from center offset 1 to the left
     OSD_INIT(osdConfig, OSD_CROSSHAIRS       , -1,  0, OSD_FLAG_ORIGIN_C | OSD_FLAG_VISIBLE_PAGE_1);
     // AH top center of region is 4 to the left
@@ -939,6 +950,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->units = OSD_UNIT_METRIC;
     osdConfig->page = 0;
     osdConfig->pageAuxChannel = 0;
+    osdConfig->statsPage = 2;
 
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
@@ -1117,10 +1129,12 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             osdResetStats();
             osdShowArmed();
             resumeRefreshAt = currentTimeUs + (REFRESH_1S / 2);
-        } else {
-            if (osdConfig()->statsPage) {
-                page = osdConfig()->statsPage;
-            }
+        } else if (osdConfig()->statsPage != -1) {
+            const uint8_t previousPage = page;
+            page = osdConfig()->statsPage;
+            osdDrawElements();
+            displayHeartbeat(osdDisplayPort);
+            page = previousPage;
             resumeRefreshAt = currentTimeUs + (60 * REFRESH_1S);
         }
 
@@ -1151,11 +1165,6 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             displayClearScreen(osdDisplayPort);
             resumeRefreshAt = 0;
         }
-    }
-
-    // Return to predefined page after stats screen was shown
-    if (page == osdConfig()->statsPage) {
-        page = osdConfig()->page;
     }
 
     // Update page based on channel position
