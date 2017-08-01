@@ -55,6 +55,7 @@ COMMON_SRC = \
             fc/fc_tasks.c \
             fc/runtime_config.c \
             io/beeper.c \
+            io/box_outputs.c \
             io/serial.c \
             io/statusindicator.c \
             io/transponder_ir.c \

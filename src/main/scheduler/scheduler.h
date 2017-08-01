@@ -113,9 +113,11 @@ typedef enum {
 #ifdef USE_CAMERA_CONTROL
     TASK_CAMCTRL,
 #endif
-
 #ifdef USE_RCSPLIT
     TASK_RCSPLIT,
+#endif
+#ifdef USE_BOX_OUTPUTS
+    TASK_BOX_OUTPUTS,
 #endif
 
     /* Count of real tasks */

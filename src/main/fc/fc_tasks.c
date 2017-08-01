@@ -58,6 +58,7 @@
 #include "flight/pid.h"
 
 #include "io/beeper.h"
+#include "io/box_outputs.h"
 #include "io/dashboard.h"
 #include "io/gps.h"
 #include "io/ledstrip.h"
@@ -371,6 +372,9 @@ void fcTasksInit(void)
 #ifdef USE_CAMERA_CONTROL
     setTaskEnabled(TASK_CAMCTRL, true);
 #endif
+#ifdef USE_BOX_OUTPUTS
+    setTaskEnabled(TASK_BOX_OUTPUTS, true);
+#endif
 }
 #endif
 
@@ -627,6 +631,15 @@ cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_CAMCTRL] = {
         .taskName = "CAMCTRL",
         .taskFunc = taskCameraControl,
+        .desiredPeriod = TASK_PERIOD_HZ(5),
+        .staticPriority = TASK_PRIORITY_IDLE
+    },
+#endif
+
+#ifdef USE_BOX_OUTPUTS
+    [TASK_BOX_OUTPUTS] = {
+        .taskName = "BOXOUT",
+        .taskFunc = boxOutputsUpdate,
         .desiredPeriod = TASK_PERIOD_HZ(5),
         .staticPriority = TASK_PRIORITY_IDLE
     },
