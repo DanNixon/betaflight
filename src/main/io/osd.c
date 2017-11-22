@@ -764,6 +764,13 @@ static void osdDrawSingleElement(uint8_t item)
 
         break;
 #endif
+
+    case OSD_MOTOR_OUTPUT:
+        {
+            // TODO
+            break;
+        }
+
     default:
         return;
     }
@@ -811,6 +818,10 @@ static void osdDrawElements(void)
     osdDrawSingleElement(OSD_NUMERICAL_HEADING);
     osdDrawSingleElement(OSD_NUMERICAL_VARIO);
     osdDrawSingleElement(OSD_COMPASS_BAR);
+    osdDrawSingleElement(OSD_MOTOR_OUTPUT_1);
+    osdDrawSingleElement(OSD_MOTOR_OUTPUT_2);
+    osdDrawSingleElement(OSD_MOTOR_OUTPUT_3);
+    osdDrawSingleElement(OSD_MOTOR_OUTPUT_4);
 
 #ifdef USE_GPS
     if (sensors(SENSOR_GPS)) {
