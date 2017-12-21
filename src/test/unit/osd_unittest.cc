@@ -45,6 +45,7 @@ extern "C" {
     #include "io/osd.h"
 
     #include "sensors/battery.h"
+    #include "sensors/sensors.h"
 
     #include "rx/rx.h"
 
@@ -741,6 +742,34 @@ TEST(OsdTest, TestElementAltitude)
     // then
     displayPortTestBufferSubstring(23, 7, "  -2.4%c", SYM_M);
 }
+
+
+/*
+ * Tests rendering of the GPS position elements.
+ */
+TEST(OsdTest, TestElementGpsPosition)
+{
+    // given
+    osdConfigMutable()->item_pos[OSD_GPS_LAT] = OSD_POS(1, 4) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_GPS_LON] = OSD_POS(1, 5) | VISIBLE_FLAG;
+
+    // and
+    // GPS is enabled
+    sensorsSet(SENSOR_GPS);
+
+    // and
+    // this position
+    gpsSol.llh.lat = 123456789;
+    gpsSol.llh.lon = 132456789;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(1, 4, "%c12.3456789", SYM_ARROW_EAST);
+    displayPortTestBufferSubstring(1, 5, "%c13.2456789", SYM_ARROW_SOUTH);
+ }
 
 /*
  * Tests the battery notifications shown on the warnings OSD element.
