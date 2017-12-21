@@ -767,8 +767,8 @@ TEST(OsdTest, TestElementGpsPosition)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(1, 4, "%c12.3456789", SYM_ARROW_EAST);
-    displayPortTestBufferSubstring(1, 5, "%c13.2456789", SYM_ARROW_SOUTH);
+    displayPortTestBufferSubstring(1, 4, "%c12.34567  ", SYM_ARROW_EAST);
+    displayPortTestBufferSubstring(1, 5, "%c13.24567  ", SYM_ARROW_SOUTH);
  }
 
 /*

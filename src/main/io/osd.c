@@ -382,13 +382,13 @@ static void osdDrawSingleElement(uint8_t item)
                 val = gpsSol.llh.lon;
             }
 
-            char wholeDegreeString[5];
-            tfp_sprintf(wholeDegreeString, "%d", val / GPS_DEGREES_DIVIDER);
+            char degreeString[5];
+            tfp_sprintf(degreeString, "%d", val / GPS_DEGREES_DIVIDER);
 
-            char wholeUnshifted[12];
-            tfp_sprintf(wholeUnshifted, "%d", val);
+            char decimalString[12];
+            tfp_sprintf(decimalString, "%d", (val % GPS_DEGREES_DIVIDER) / 100);
 
-            tfp_sprintf(buff + 1, "%s.%s", wholeDegreeString, wholeUnshifted + strlen(wholeDegreeString));
+            tfp_sprintf(buff + 1, "%s.%s", degreeString, decimalString);
             break;
         }
 
