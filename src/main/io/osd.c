@@ -78,6 +78,7 @@
 
 #include "rx/rx.h"
 
+#include "sensors/acceleration.h"
 #include "sensors/barometer.h"
 #include "sensors/battery.h"
 #include "sensors/esc_sensor.h"
@@ -760,6 +761,20 @@ static bool osdDrawSingleElement(uint8_t item)
         break;
 #endif
 
+    case OSD_G_FORCE_METER:
+        {
+            int magnitude = 0;
+            for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+                magnitude += acc.accADC[i] * acc.accADC[i];
+            }
+            magnitude = sqrt(magnitude);
+
+            /* acc.dev.acc_1G */
+
+            tfp_sprintf(buff, "%dG", magnitude);
+            break;
+        }
+
     default:
         return false;
     }
@@ -835,6 +850,8 @@ static void osdDrawElements(void)
 #ifdef USE_OSD_ADJUSTMENTS
     osdDrawSingleElement(OSD_ADJUSTMENT_RANGE);
 #endif
+
+    osdDrawSingleElement(OSD_G_FORCE_METER);
 }
 
 void pgResetFn_osdConfig(osdConfig_t *osdConfig)
