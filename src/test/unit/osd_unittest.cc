@@ -51,7 +51,7 @@ extern "C" {
     #include "rx/rx.h"
 
     void osdRefresh(timeUs_t currentTimeUs);
-    void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time);
+    void osdFormatTime(char * buff, osdTimerPrecision_e precision, timeUs_t time);
     void osdFormatTimer(char *buff, bool showSymbol, int timerIndex);
     int osdConvertTemperatureToSelectedUnit(int tempInDeciDegrees);
 
@@ -143,7 +143,7 @@ void doTestArm(bool testEmpty = true)
  */
 bool isSomeStatEnabled(void) {
     for (int i = 0; i < OSD_STAT_COUNT; i++) {
-        if (osdConfigMutable()->enabled_stats[i]) {
+        if (osdConfigMutable()->enabledStatistics[i]) {
             return true;
         }
     }
@@ -288,19 +288,19 @@ TEST(OsdTest, TestStatsImperial)
 {
     // given
     // this set of enabled post flight statistics
-    osdConfigMutable()->enabled_stats[OSD_STAT_MAX_SPEED]       = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_MIN_BATTERY]     = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_MIN_RSSI]        = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_MAX_CURRENT]     = false;
-    osdConfigMutable()->enabled_stats[OSD_STAT_USED_MAH]        = false;
-    osdConfigMutable()->enabled_stats[OSD_STAT_MAX_ALTITUDE]    = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_BLACKBOX]        = false;
-    osdConfigMutable()->enabled_stats[OSD_STAT_END_BATTERY]     = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_TIMER_1]         = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_TIMER_2]         = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_RTC_DATE_TIME]   = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_MAX_DISTANCE]    = true;
-    osdConfigMutable()->enabled_stats[OSD_STAT_BLACKBOX_NUMBER] = false;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MAX_SPEED]       = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MIN_BATTERY]     = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MIN_RSSI]        = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MAX_CURRENT]     = false;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_USED_MAH]        = false;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MAX_ALTITUDE]    = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_BLACKBOX]        = false;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_END_BATTERY]     = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_TIMER_1]         = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_TIMER_2]         = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_RTC_DATE_TIME]   = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_MAX_DISTANCE]    = true;
+    osdConfigMutable()->enabledStatistics[OSD_STAT_BLACKBOX_NUMBER] = false;
 
     // and
     // using imperial unit system
@@ -449,9 +449,9 @@ TEST(OsdTest, TestAlarms)
 
     // and
     // this set of alarm values
-    osdConfigMutable()->rssi_alarm = 20;
-    osdConfigMutable()->cap_alarm  = 2200;
-    osdConfigMutable()->alt_alarm  = 100; // meters
+    osdConfigMutable()->rssiAlarm = 20;
+    osdConfigMutable()->capacityAlarm  = 2200;
+    osdConfigMutable()->altitudeAlarm  = 100; // meters
 
     // and
     // this timer 1 configuration
@@ -532,7 +532,7 @@ TEST(OsdTest, TestElementRssi)
 {
     // given
     osdConfigMutable()->item_pos[OSD_RSSI_VALUE] = OSD_POS(8, 1) | VISIBLE_FLAG;
-    osdConfigMutable()->rssi_alarm = 0;
+    osdConfigMutable()->rssiAlarm = 0;
 
     // when
     rssi = 1024;

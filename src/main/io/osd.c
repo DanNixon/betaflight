@@ -275,7 +275,7 @@ static uint8_t osdGetDirectionSymbolFromHeading(int heading)
     return SYM_ARROW_SOUTH + heading;
 }
 
-static char osdGetTimerSymbol(osd_timer_source_e src)
+static char osdGetTimerSymbol(osdTimerSource_e src)
 {
     switch (src) {
     case OSD_TIMER_SRC_ON:
@@ -288,7 +288,7 @@ static char osdGetTimerSymbol(osd_timer_source_e src)
     }
 }
 
-static timeUs_t osdGetTimerValue(osd_timer_source_e src)
+static timeUs_t osdGetTimerValue(osdTimerSource_e src)
 {
     switch (src) {
     case OSD_TIMER_SRC_ON:
@@ -302,7 +302,7 @@ static timeUs_t osdGetTimerValue(osd_timer_source_e src)
     }
 }
 
-STATIC_UNIT_TESTED void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time)
+STATIC_UNIT_TESTED void osdFormatTime(char * buff, osdTimerPrecision_e precision, timeUs_t time)
 {
     int seconds = time / 1000000;
     const int minutes = seconds / 60;
@@ -488,11 +488,11 @@ static bool osdDrawSingleElement(uint8_t item)
     case OSD_REMAINING_TIME_ESTIMATE:
         {
             const int mAhDrawn = getMAhDrawn();
-            const int remaining_time = (int)((osdConfig()->cap_alarm - mAhDrawn) * ((float)flyTime) / mAhDrawn);
+            const int remaining_time = (int)((osdConfig()->capacityAlarm - mAhDrawn) * ((float)flyTime) / mAhDrawn);
 
-            if (mAhDrawn < 0.1 * osdConfig()->cap_alarm) {
+            if (mAhDrawn < 0.1 * osdConfig()->capacityAlarm) {
                 tfp_sprintf(buff, "--:--");
-            } else if (mAhDrawn > osdConfig()->cap_alarm) {
+            } else if (mAhDrawn > osdConfig()->capacityAlarm) {
                 tfp_sprintf(buff, "00:00");
             } else {
                 osdFormatTime(buff, OSD_TIMER_PREC_SECOND, remaining_time);
@@ -897,20 +897,20 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->item_pos[OSD_ARTIFICIAL_HORIZON] = OSD_POS(14, 2);
     osdConfig->item_pos[OSD_HORIZON_SIDEBARS]   = OSD_POS(14, 6);
 
-    osdConfig->enabled_stats[OSD_STAT_MAX_SPEED]       = true;
-    osdConfig->enabled_stats[OSD_STAT_MIN_BATTERY]     = true;
-    osdConfig->enabled_stats[OSD_STAT_MIN_RSSI]        = true;
-    osdConfig->enabled_stats[OSD_STAT_MAX_CURRENT]     = true;
-    osdConfig->enabled_stats[OSD_STAT_USED_MAH]        = true;
-    osdConfig->enabled_stats[OSD_STAT_MAX_ALTITUDE]    = false;
-    osdConfig->enabled_stats[OSD_STAT_BLACKBOX]        = true;
-    osdConfig->enabled_stats[OSD_STAT_END_BATTERY]     = false;
-    osdConfig->enabled_stats[OSD_STAT_MAX_DISTANCE]    = false;
-    osdConfig->enabled_stats[OSD_STAT_BLACKBOX_NUMBER] = true;
-    osdConfig->enabled_stats[OSD_STAT_TIMER_1]         = false;
-    osdConfig->enabled_stats[OSD_STAT_TIMER_2]         = true;
-    osdConfig->enabled_stats[OSD_STAT_RTC_DATE_TIME]   = false;
-    osdConfig->enabled_stats[OSD_STAT_BATTERY]         = false;
+    osdConfig->enabledStatistics[OSD_STAT_MAX_SPEED]       = true;
+    osdConfig->enabledStatistics[OSD_STAT_MIN_BATTERY]     = true;
+    osdConfig->enabledStatistics[OSD_STAT_MIN_RSSI]        = true;
+    osdConfig->enabledStatistics[OSD_STAT_MAX_CURRENT]     = true;
+    osdConfig->enabledStatistics[OSD_STAT_USED_MAH]        = true;
+    osdConfig->enabledStatistics[OSD_STAT_MAX_ALTITUDE]    = false;
+    osdConfig->enabledStatistics[OSD_STAT_BLACKBOX]        = true;
+    osdConfig->enabledStatistics[OSD_STAT_END_BATTERY]     = false;
+    osdConfig->enabledStatistics[OSD_STAT_MAX_DISTANCE]    = false;
+    osdConfig->enabledStatistics[OSD_STAT_BLACKBOX_NUMBER] = true;
+    osdConfig->enabledStatistics[OSD_STAT_TIMER_1]         = false;
+    osdConfig->enabledStatistics[OSD_STAT_TIMER_2]         = true;
+    osdConfig->enabledStatistics[OSD_STAT_RTC_DATE_TIME]   = false;
+    osdConfig->enabledStatistics[OSD_STAT_BATTERY]         = false;
 
     osdConfig->units = OSD_UNIT_METRIC;
 
@@ -920,9 +920,9 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
 
-    osdConfig->rssi_alarm = 20;
-    osdConfig->cap_alarm  = 2200;
-    osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
+    osdConfig->rssiAlarm = 20;
+    osdConfig->capacityAlarm  = 2200;
+    osdConfig->altitudeAlarm  = 100; // meters or feet depend on configuration
 
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
@@ -988,7 +988,7 @@ void osdUpdateAlarms(void)
 
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
 
-    if (scaleRange(getRssi(), 0, 1024, 0, 100) < osdConfig()->rssi_alarm) {
+    if (scaleRange(getRssi(), 0, 1024, 0, 100) < osdConfig()->rssiAlarm) {
         SET_BLINK(OSD_RSSI_VALUE);
     } else {
         CLR_BLINK(OSD_RSSI_VALUE);
@@ -1021,7 +1021,7 @@ void osdUpdateAlarms(void)
         }
     }
 
-    if (getMAhDrawn() >= osdConfig()->cap_alarm) {
+    if (getMAhDrawn() >= osdConfig()->capacityAlarm) {
         SET_BLINK(OSD_MAH_DRAWN);
         SET_BLINK(OSD_MAIN_BATT_USAGE);
         SET_BLINK(OSD_REMAINING_TIME_ESTIMATE);
@@ -1031,7 +1031,7 @@ void osdUpdateAlarms(void)
         CLR_BLINK(OSD_REMAINING_TIME_ESTIMATE);
     }
 
-    if (alt >= osdConfig()->alt_alarm) {
+    if (alt >= osdConfig()->altitudeAlarm) {
         SET_BLINK(OSD_ALTITUDE);
     } else {
         CLR_BLINK(OSD_ALTITUDE);
@@ -1161,7 +1161,7 @@ static void osdDisplayStatisticLabel(uint8_t y, const char * text, const char * 
 static bool isSomeStatEnabled(void)
 {
     for (int i = 0; i < OSD_STAT_COUNT; i++) {
-        if (osdConfig()->enabled_stats[i]) {
+        if (osdConfig()->enabledStatistics[i]) {
             return true;
         }
     }
@@ -1176,7 +1176,7 @@ static void osdShowStats(uint16_t endBatteryVoltage)
     displayClearScreen(osdDisplayPort);
     displayWrite(osdDisplayPort, 2, top++, "  --- STATS ---");
 
-    if (osdConfig()->enabled_stats[OSD_STAT_RTC_DATE_TIME]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_RTC_DATE_TIME]) {
         bool success = false;
 #ifdef USE_RTC_TIME
         success = osdFormatRtcDateTime(&buff[0]);
@@ -1188,72 +1188,72 @@ static void osdShowStats(uint16_t endBatteryVoltage)
         displayWrite(osdDisplayPort, 2, top++, buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_TIMER_1]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_TIMER_1]) {
         osdFormatTimer(buff, false, (OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_1]) == OSD_TIMER_SRC_ON ? false : true), OSD_TIMER_1);
         osdDisplayStatisticLabel(top++, osdTimerSourceNames[OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_1])], buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_TIMER_2]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_TIMER_2]) {
         osdFormatTimer(buff, false, (OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_2]) == OSD_TIMER_SRC_ON ? false : true), OSD_TIMER_2);
         osdDisplayStatisticLabel(top++, osdTimerSourceNames[OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_2])], buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_SPEED] && STATE(GPS_FIX)) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_MAX_SPEED] && STATE(GPS_FIX)) {
         itoa(stats.max_speed, buff, 10);
         osdDisplayStatisticLabel(top++, "MAX SPEED", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_DISTANCE]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_MAX_DISTANCE]) {
         tfp_sprintf(buff, "%d%c", osdGetMetersToSelectedUnit(stats.max_distance), osdGetMetersToSelectedUnitSymbol());
         osdDisplayStatisticLabel(top++, "MAX DISTANCE", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_MIN_BATTERY]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_MIN_BATTERY]) {
         tfp_sprintf(buff, "%d.%1d%c", stats.min_voltage / 10, stats.min_voltage % 10, SYM_VOLT);
         osdDisplayStatisticLabel(top++, "MIN BATTERY", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_END_BATTERY]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_END_BATTERY]) {
         tfp_sprintf(buff, "%d.%1d%c", endBatteryVoltage / 10, endBatteryVoltage % 10, SYM_VOLT);
         osdDisplayStatisticLabel(top++, "END BATTERY", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_BATTERY]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_BATTERY]) {
         tfp_sprintf(buff, "%d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
         osdDisplayStatisticLabel(top++, "BATTERY", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_MIN_RSSI]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_MIN_RSSI]) {
         itoa(stats.min_rssi, buff, 10);
         strcat(buff, "%");
         osdDisplayStatisticLabel(top++, "MIN RSSI", buff);
     }
 
     if (batteryConfig()->currentMeterSource != CURRENT_METER_NONE) {
-        if (osdConfig()->enabled_stats[OSD_STAT_MAX_CURRENT]) {
+        if (osdConfig()->enabledStatistics[OSD_STAT_MAX_CURRENT]) {
             itoa(stats.max_current, buff, 10);
             strcat(buff, "A");
             osdDisplayStatisticLabel(top++, "MAX CURRENT", buff);
         }
 
-        if (osdConfig()->enabled_stats[OSD_STAT_USED_MAH]) {
+        if (osdConfig()->enabledStatistics[OSD_STAT_USED_MAH]) {
             tfp_sprintf(buff, "%d%c", getMAhDrawn(), SYM_MAH);
             osdDisplayStatisticLabel(top++, "USED MAH", buff);
         }
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_MAX_ALTITUDE]) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_MAX_ALTITUDE]) {
         osdFormatAltitudeString(buff, stats.max_altitude, false);
         osdDisplayStatisticLabel(top++, "MAX ALTITUDE", buff);
     }
 
 #ifdef USE_BLACKBOX
-    if (osdConfig()->enabled_stats[OSD_STAT_BLACKBOX] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_BLACKBOX] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
         osdGetBlackboxStatusString(buff);
         osdDisplayStatisticLabel(top++, "BLACKBOX", buff);
     }
 
-    if (osdConfig()->enabled_stats[OSD_STAT_BLACKBOX_NUMBER] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
+    if (osdConfig()->enabledStatistics[OSD_STAT_BLACKBOX_NUMBER] && blackboxConfig()->device && blackboxConfig()->device != BLACKBOX_DEVICE_SERIAL) {
         itoa(blackboxGetLogNumber(), buff, 10);
         osdDisplayStatisticLabel(top++, "BB LOG NUM", buff);
     }

@@ -87,7 +87,7 @@ typedef enum {
     OSD_ADJUSTMENT_RANGE,
     OSD_CORE_TEMPERATURE,
     OSD_ITEM_COUNT // MUST BE LAST
-} osd_items_e;
+} osdElement_e;
 
 typedef enum {
     OSD_STAT_MAX_SPEED,
@@ -105,31 +105,31 @@ typedef enum {
     OSD_STAT_RTC_DATE_TIME,
     OSD_STAT_BATTERY,
     OSD_STAT_COUNT // MUST BE LAST
-} osd_stats_e;
+} osdStatistic_e;
 
 typedef enum {
     OSD_UNIT_IMPERIAL,
     OSD_UNIT_METRIC
-} osd_unit_e;
+} osdUnit_e;
 
 typedef enum {
     OSD_TIMER_1,
     OSD_TIMER_2,
     OSD_TIMER_COUNT
-} osd_timer_e;
+} osdTimer_e;
 
 typedef enum {
     OSD_TIMER_SRC_ON,
     OSD_TIMER_SRC_TOTAL_ARMED,
     OSD_TIMER_SRC_LAST_ARMED,
     OSD_TIMER_SRC_COUNT
-} osd_timer_source_e;
+} osdTimerSource_e;
 
 typedef enum {
     OSD_TIMER_PREC_SECOND,
     OSD_TIMER_PREC_HUNDREDTHS,
     OSD_TIMER_PREC_COUNT
-} osd_timer_precision_e;
+} osdTimerPrecision_e;
 
 typedef enum {
     OSD_WARNING_ARMING_DISABLE    = (1 << 0),
@@ -144,19 +144,19 @@ typedef enum {
 typedef struct osdConfig_s {
     uint16_t item_pos[OSD_ITEM_COUNT];
 
-    // Alarms
-    uint16_t cap_alarm;
-    uint16_t alt_alarm;
-    uint8_t rssi_alarm;
+    uint16_t capacityAlarm;
+    uint16_t altitudeAlarm;
+    uint8_t rssiAlarm;
 
-    osd_unit_e units;
+    osdUnit_e units;
 
     uint16_t timers[OSD_TIMER_COUNT];
     uint16_t enabledWarnings;
 
     uint8_t ahMaxPitch;
     uint8_t ahMaxRoll;
-    bool enabled_stats[OSD_STAT_COUNT];
+
+    bool enabledStatistics[OSD_STAT_COUNT];
 } osdConfig_t;
 
 extern timeUs_t resumeRefreshAt;

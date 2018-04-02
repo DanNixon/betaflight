@@ -113,15 +113,15 @@ CMS_Menu menuOsdActiveElems = {
     .entries = menuOsdActiveElemsEntries
 };
 
-static uint8_t osdConfig_rssi_alarm;
-static uint16_t osdConfig_cap_alarm;
-static uint16_t osdConfig_alt_alarm;
+static uint8_t osdConfig_rssiAlarm;
+static uint16_t osdConfig_capacityAlarm;
+static uint16_t osdConfig_altitudeAlarm;
 
 static long menuAlarmsOnEnter(void)
 {
-    osdConfig_rssi_alarm = osdConfig()->rssi_alarm;
-    osdConfig_cap_alarm = osdConfig()->cap_alarm;
-    osdConfig_alt_alarm = osdConfig()->alt_alarm;
+    osdConfig_rssiAlarm = osdConfig()->rssiAlarm;
+    osdConfig_capacityAlarm = osdConfig()->capacityAlarm;
+    osdConfig_altitudeAlarm = osdConfig()->altitudeAlarm;
 
     return 0;
 }
@@ -130,9 +130,9 @@ static long menuAlarmsOnExit(const OSD_Entry *self)
 {
     UNUSED(self);
 
-    osdConfigMutable()->rssi_alarm = osdConfig_rssi_alarm;
-    osdConfigMutable()->cap_alarm = osdConfig_cap_alarm;
-    osdConfigMutable()->alt_alarm = osdConfig_alt_alarm;
+    osdConfigMutable()->rssiAlarm = osdConfig_rssiAlarm;
+    osdConfigMutable()->capacityAlarm = osdConfig_capacityAlarm;
+    osdConfigMutable()->altitudeAlarm = osdConfig_altitudeAlarm;
 
     return 0;
 }
@@ -140,9 +140,9 @@ static long menuAlarmsOnExit(const OSD_Entry *self)
 OSD_Entry menuAlarmsEntries[] =
 {
     {"--- ALARMS ---", OME_Label, NULL, NULL, 0},
-    {"RSSI",     OME_UINT8,  NULL, &(OSD_UINT8_t){&osdConfig_rssi_alarm, 5, 90, 5}, 0},
-    {"MAIN BAT", OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_cap_alarm, 50, 30000, 50}, 0},
-    {"MAX ALT",  OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_alt_alarm, 1, 200, 1}, 0},
+    {"RSSI",     OME_UINT8,  NULL, &(OSD_UINT8_t){&osdConfig_rssiAlarm, 5, 90, 5}, 0},
+    {"MAIN BAT", OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_capacityAlarm, 50, 30000, 50}, 0},
+    {"MAX ALT",  OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_altitudeAlarm, 1, 200, 1}, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}
 };
@@ -157,8 +157,8 @@ CMS_Menu menuAlarms = {
     .entries = menuAlarmsEntries,
 };
 
-osd_timer_source_e timerSource[OSD_TIMER_COUNT];
-osd_timer_precision_e timerPrecision[OSD_TIMER_COUNT];
+osdTimerSource_e timerSource[OSD_TIMER_COUNT];
+osdTimerPrecision_e timerPrecision[OSD_TIMER_COUNT];
 uint8_t timerAlarm[OSD_TIMER_COUNT];
 
 static long menuTimersOnEnter(void)
